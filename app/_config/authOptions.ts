@@ -1,33 +1,25 @@
 import { NextAuthOptions, } from "next-auth"
 import Credentials from "next-auth/providers/credentials"
-import { z } from 'zod';
-import User from '@app/api/user/schema';
-import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, NEXTAUTH_SECRET } from '@app/_config/const'
+import EmplyeeModel from '@app/_model/employee.model';
+import { NEXTAUTH_SECRET } from '@app/_config/const'
 import DB from '@app/_config/database'
-import Google from "next-auth/providers/google";
 
 export const authOptions: NextAuthOptions = {
     providers: [
         Credentials({
             name: "tradingDocs",
             credentials: {
-                emailOrmobile: { label: "Email", type: "text", placeholder: "Email" },
+                email: { label: "Email", type: "text", placeholder: "Email" },
                 password: { label: "Password", type: "password", placeholder: "Password" }
             },
             async authorize(credentials, req) {
                 DB()
-
-                    const user = await User.findOne({ email: credentials?.emailOrmobile });
-                    console.log(user)
-                if (!user) {
-                    return null
+                    const employee = await EmplyeeModel.findOne({ email: credentials?.email });
+                if (!employee) {
+                    throw new Error("Email or Password may be incorrect! pls again to login")
                 }
-                return user
+                return employee
             },
-        }),
-        Google({
-            clientId:GOOGLE_CLIENT_ID!,
-            clientSecret:GOOGLE_CLIENT_SECRET!
         })
     ],
     session: {
