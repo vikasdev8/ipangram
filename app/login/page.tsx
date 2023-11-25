@@ -1,5 +1,5 @@
 "use client"
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import {
   Button,
   Card,
@@ -8,12 +8,12 @@ import {
   Typography,
   Input,
   Checkbox,
-
 } from "@material-tailwind/react";
 import { useForm, SubmitHandler } from "react-hook-form"
 import { ErrorMessage } from '@hookform/error-message';
-import { signIn } from 'next-auth/react'
+import { signIn,useSession } from 'next-auth/react'
 import { Context } from '@app/_helper/alertProvider';
+import {useRouter} from 'next/navigation';
 
 type Inputs = {
   email: string
@@ -22,6 +22,8 @@ type Inputs = {
 }
 
 export default function LogInForm() {
+  const {status} = useSession();
+  const router = useRouter();
   const { alertFun } = useContext(Context)!;
   const {
     register,
@@ -31,27 +33,29 @@ export default function LogInForm() {
   } = useForm<Inputs>()
 
   const resetForm = () => {
-    // handleOpen();
     reset()
   }
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    signIn('credentials', { redirect: false, data }).then((res) => {
+    signIn('credentials', { redirect: false, ...data }).then((res) => {
       if (!res?.ok) {
         return alertFun(res?.error!, "error");
       }
       alertFun('Sign in Successfully', "success");
+      router.push('/dashboard')
     })
     resetForm();
   }
 
-  const signupPage = () => {
-    resetForm();
-    // signupFun();
-  }
+  useEffect(()=>{
+    if(status === "authenticated"){
+        router.push('/dashboard')
+    }
+  },[status])
+
   return (
     <>
-      <div className="w-full h-screen justify-center items-center">
-        <Card className="mx-auto w-full max-w-[24rem]">
+      <div className="w-full h-screen justify-center flex items-center">
+        <Card className="w-full max-w-[24rem]">
           <form onSubmit={handleSubmit(onSubmit)} >
             <CardBody className="flex flex-col gap-4">
               <Typography variant="h4" className="mx-auto" color="blue-gray">
@@ -77,10 +81,12 @@ export default function LogInForm() {
               <Typography variant="small" className="mt-4 flex justify-center">
                 Don't have an account?
                 <Typography
+                  as="button"
                   variant="small"
                   color="blue-gray"
                   className="ml-1 font-bold"
-                // onClick={signupPage}
+                  type="button"
+                  onClick={()=>router.push('/signup')}
                 >
                   Sign UP
                 </Typography>

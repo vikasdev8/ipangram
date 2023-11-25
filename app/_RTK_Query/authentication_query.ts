@@ -1,12 +1,12 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
 export const authApis = createApi({
-  reducerPath: 'auth',
+  reducerPath: 'Ipangram',
   baseQuery: fetchBaseQuery({ baseUrl: '/api/' }),
   endpoints: (builder) => ({
-    register: builder.mutation({
+    createEmployee: builder.mutation({
       query:(body)=>({
-        url:"user/signup",
+        url:"employee",
         body,
         method:"post"
       }),
@@ -14,4 +14,4 @@ export const authApis = createApi({
   }),
 })
 
-export const {useRegisterMutation} = authApis;
+export const {useCreateEmployeeMutation} = authApis;
