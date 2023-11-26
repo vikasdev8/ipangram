@@ -1,5 +1,4 @@
 import DB from '@app/_config/database';
-import deparment from '@app/_helper/department';
 import HandleResponse from '@app/_helper/response';
 import EmployeeModel from '@app/_model/employee.model';
 import { NextRequest } from 'next/server';
@@ -78,16 +77,13 @@ export async function PUT(req: Request) {
 
         const body = await req.json();
         const result = z.object({
-            name:z.string(),
-            email:z.string().email({message:"Invalid email"}),
             role:z.enum(['manager', 'employee']),
             department:z.string(),
-            password:z.string()
+            _id:z.string()
         })
         .required()
         .safeParse(body)
         
-        console.log(result)
         if (!result.success) {
             return HandleResponse({
                 type: "BAD_REQUEST",
@@ -95,11 +91,11 @@ export async function PUT(req: Request) {
             })
           }
 
-        await EmployeeModel.create(body)
+        await EmployeeModel.findByIdAndUpdate(body._id, body)
 
         return HandleResponse({
             type: "SUCCESS",
-            message: "sign up successfully"
+            message: "update successfully"
         })
     } catch (error:any) {
         return HandleResponse({
@@ -108,34 +104,18 @@ export async function PUT(req: Request) {
         })
     }
 }
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
     try {
         DB();
 
-        const body = await req.json();
-        const result = z.object({
-            name:z.string(),
-            email:z.string().email({message:"Invalid email"}),
-            role:z.enum(['manager', 'employee']),
-            department:z.string(),
-            password:z.string()
-        })
-        .required()
-        .safeParse(body)
-        
-        console.log(result)
-        if (!result.success) {
-            return HandleResponse({
-                type: "BAD_REQUEST",
-                message: result.error.issues.map((v)=> `${v.path[0]}: ${v.message}`).join('\n')
-            })
-          }
+        const searchParams = req.nextUrl.searchParams
+        const id = searchParams.get('id');
 
-        await EmployeeModel.create(body)
+        await EmployeeModel.findByIdAndDelete(id)
 
         return HandleResponse({
             type: "SUCCESS",
-            message: "sign up successfully"
+            message: "Successfully Deleted"
         })
     } catch (error:any) {
         return HandleResponse({
