@@ -50,7 +50,7 @@ export default function LogInForm() {
   }
   return (
     <>
-      <div className="w-full h-screen justify-center items-center">
+      <div className="w-full h-screen flex justify-center items-center">
         <Card className="mx-auto w-full max-w-[24rem]">
           <form onSubmit={handleSubmit(onSubmit)} >
             <CardBody className="flex flex-col gap-4">
