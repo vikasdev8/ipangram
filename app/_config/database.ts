@@ -49,7 +49,7 @@ async function dbConnect () {
     }
     try {
       await mongoose.connect(MONGODB_URI!, {
-        dbName: "tradingdocs",
+        dbName: "interview",
       })
   
       connected = true;
