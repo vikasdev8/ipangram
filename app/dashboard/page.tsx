@@ -13,7 +13,7 @@ import { Pagination, Select } from 'antd';
 
 export default function LogInForm() {
   const router = useRouter()
-  const { status, data: session } = useSession();
+  const { status, data: session, update } = useSession();
 
   const users: any = session?.user;
 
@@ -57,7 +57,7 @@ export default function LogInForm() {
         (status === "authenticated" && isSuccess) ?
           (users.role === "manager" ?
             <>
-              <Employees employees={data.data.employees} />
+              <Employees employees={data.data.employees} setpage={setPage}/>
               <div className="flex items-center gap-4 justify-center">
                 <div className="w-72 absolute left-2">
                   <Select onChange={(e)=>{
@@ -98,7 +98,7 @@ export default function LogInForm() {
               </div>
             </>
             :
-            <Profile user={users}/>)
+            <Profile user={users} update={update}/>)
           :
           <h1>No Employees</h1>
       }

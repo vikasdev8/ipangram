@@ -81,7 +81,7 @@ export async function PUT(req: Request) {
             department:z.string(),
             _id:z.string()
         })
-        .required()
+        .partial()
         .safeParse(body)
         
         if (!result.success) {

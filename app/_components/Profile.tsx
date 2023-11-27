@@ -2,7 +2,7 @@ import React, { useContext, useState } from "react";
 import { Button, Typography } from "@material-tailwind/react";
 import { Form } from "./Form";
 
-const Profile = ({user}:any) => {
+const Profile = ({user, update}:any) => {
   const [uopen, setUOpen] = useState(false);
   const uhandleOpen = () =>{
     setUOpen((v)=>!v)
@@ -15,7 +15,7 @@ const Profile = ({user}:any) => {
         <Typography as="h1" className="text-2xl mt-3"> {user.email} </Typography>
         <Typography as="h1" className="text-2xl mt-3"> {user.role} </Typography>
         <Typography as="h1" className="text-2xl mt-3"> {user.department} </Typography>
-        <Form open={uopen} handleOpen={uhandleOpen} type="profile" datas={user}/>
+        <Form open={uopen} handleOpen={uhandleOpen} type="profile" datas={user} update={update}/>
     </div>
   )
 }

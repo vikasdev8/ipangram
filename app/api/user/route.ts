@@ -18,7 +18,8 @@ export async function PUT(req: NextRequest) {
             currentPassword: z.string(),
             _id: z.string()
         })
-            .safeParse(body)
+        .partial()
+        .safeParse(body)
 
         if (!result.success) {
             return HandleResponse({
@@ -40,8 +41,8 @@ export async function PUT(req: NextRequest) {
             }
             password ? user['password'] = password : "";
         }
-        name ? user['name'] = name : "";
-        email ? user['email'] = email : "";
+        name  ? user['name'] = name : "";
+        email  ? user['email'] = email : "";
         user.save();
 
         return HandleResponse({

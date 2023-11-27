@@ -16,8 +16,6 @@ import { ErrorMessage } from '@hookform/error-message';
 import { Context } from '@app/_helper/alertProvider';
 import deparment from "@app/_helper/department";
 import { useCreateEmployeeMutation, useUpdateEmployeeMutation, useUpdateProfileMutation } from "@app/_RTK_Query/authentication_query";
-import {useSession} from 'next-auth/react'
-import { userAgent } from "next/server";
 
 interface Inputs {
     name?: string,
@@ -30,9 +28,8 @@ interface Inputs {
     currentPassword?:string
 }
 
-export function Form({ handleOpen, open, type, datas }: { handleOpen: () => void, open: boolean, type: string, datas: any }) {
+export function Form({ handleOpen, open, type, datas, update }: { handleOpen: () => void, open: boolean, type: string, datas: any, update?:any }) {
     const { alertFun } = useContext(Context)!;
-    const {update} = useSession();
     const {
         register,
         handleSubmit,
@@ -59,10 +56,6 @@ export function Form({ handleOpen, open, type, datas }: { handleOpen: () => void
         }
         if (type === "update") {
             updateR(data).unwrap().then((res) => {
-                let details:any = {};
-                data?.name ? details['name'] = data.name : ""
-                data?.email ? details['email'] = data.email : ""
-                update(details)
                 alertFun('Updated Successfully', "success");
             }).catch((error) => {
                 alertFun(error?.data?.message, "error")
@@ -70,7 +63,15 @@ export function Form({ handleOpen, open, type, datas }: { handleOpen: () => void
 
         }
         if (type === "profile") {
-            updateProfile(data).unwrap().then((res) => {
+            const {name, _id, email,password,currentPassword} = data;
+            let d:any = {};
+            _id ? d['_id'] = _id : "";
+            name ? d['name'] = name : "";
+            email ? d['email'] = email : "";
+            password ? d['password'] = password : "";
+            currentPassword ? d['currentPassword'] = currentPassword : "";
+            updateProfile(d).unwrap().then((res) => {
+                update(d);
                 alertFun('Profile Updated Successfully', "success");
             }).catch((error) => {
                 alertFun(error?.data?.message, "error")
@@ -91,7 +92,11 @@ export function Form({ handleOpen, open, type, datas }: { handleOpen: () => void
                     <form onSubmit={handleSubmit(onSubmit)} >
                         <CardBody className="flex flex-col gap-4">
                             <Typography variant="h4" className="mx-auto" color="blue-gray">
-                                {type === "create" ? "Create Employee" : "Update Employee"}
+                                {
+                                type === "create" && "Create Employee" ||
+                                type === "update" && "Update Employee" ||
+                                type === "profile" && "Update Profile"
+                                }
                             </Typography>
                             {
                                 type !== "update" &&
@@ -114,14 +119,14 @@ export function Form({ handleOpen, open, type, datas }: { handleOpen: () => void
                                 type !== "profile" &&
                                 <>
                                     <div>
-                                        <Select label="Designation" value={type === "update" ? datas?.role : ""} {...register('role', { required: "Role should be from dropdown", value: datas?.role || "" })} onChange={(e: any) => setValue("role", e)}>
+                                        <Select label="Designation" value={type === "update" ? datas?.role : ""} {...register('role', { required: (type === "update") ? "" :  "Role should be from dropdown" })} onChange={(e: any) => setValue("role", e)}>
                                             <Option value="employee">Employee</Option>
                                             <Option value="manager">Manager</Option>
                                         </Select>
                                         <ErrorMessage errors={errors} name="role" render={({ message }) => <p className="text-[10px] text-red-400">{message}</p>} />
                                     </div>
                                     <div>
-                                        <Select label="Department" value={type === "update" ? datas?.department : ""} {...register('department', { required: "Deparement should be from dropdown", value: datas?.role || "" })} onChange={(e: any) => setValue("department", e)}>
+                                        <Select label="Department" value={type === "update" ? datas?.department : ""} {...register('department', { required: (type === "update") ? "" : "Deparement should be from dropdown"})} onChange={(e: any) => setValue("department", e)}>
                                             {
                                                 deparment.map((dep, i) => (
                                                     <Option key={i} value={dep}>{dep}</Option>
@@ -144,7 +149,7 @@ export function Form({ handleOpen, open, type, datas }: { handleOpen: () => void
                                 type !== "update" &&
                                 <>
                                     <div>
-                                        <Input label={type === "profile" ? "New Password" : "Password"} size="lg" type="password" {...register("password", { required: (getValues("currentPassword") || getValues("cpassword") ) && "Confirm Passowrd Missing",  })} crossOrigin="anonymous" />
+                                        <Input label={type === "profile" ? "New Password" : "Password"} size="lg" type="password" {...register("password", { required: (!!getValues("currentPassword") || !!getValues("cpassword") ) ? "Confirm Passowrd Missing" : type === "create" && "Confirm Passowrd Missing",  })} crossOrigin="anonymous" />
                                         <ErrorMessage errors={errors} name="password" render={({ message }) => <p className="text-[10px] text-red-400">{message}</p>} />
                                     </div>
                                     <div>

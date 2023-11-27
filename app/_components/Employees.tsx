@@ -5,7 +5,7 @@ import { useDeleteEmployeeMutation } from "@app/_RTK_Query/authentication_query"
 import { Context } from "@app/_helper/alertProvider";
 
 
-export default function Employees({ employees: TABLE_ROWS }: { employees: any[] }) {
+export default function Employees({ employees: TABLE_ROWS, setpage }: { employees: any[], setpage:React.Dispatch<React.SetStateAction<number>> }) {
   const TABLE_HEAD = ["Name", "Email", "Department", "Role", "Actions"];
   const [deleteE] = useDeleteEmployeeMutation();
   const [copen, setCOpen] = useState(false);
@@ -23,6 +23,7 @@ export default function Employees({ employees: TABLE_ROWS }: { employees: any[] 
 
   const deleteEmployee = (url:string) => {
     deleteE(url).unwrap().then((res) => {
+      setpage(1)
       alertFun('Deleted Successfully', "success");
   }).catch((error) => {
       alertFun(error?.data?.message, "error")
@@ -55,7 +56,8 @@ export default function Employees({ employees: TABLE_ROWS }: { employees: any[] 
             </tr>
           </thead>
           <tbody>
-            {TABLE_ROWS.map(({ name, email, department, role, _id }, index) => {
+            { TABLE_ROWS.length > 0 ?
+             TABLE_ROWS.map(({ name, email, department, role, _id }, index) => {
               const isLast = index === TABLE_ROWS.length - 1;
               const classes = isLast ? "p-4" : "p-4 border-b border-blue-gray-50";
 
@@ -112,7 +114,10 @@ export default function Employees({ employees: TABLE_ROWS }: { employees: any[] 
                   </td>
                 </tr>
               );
-            })}
+            })
+            :
+            <h1 className="mx-auto w-full">No Employess</h1>
+          }
           </tbody>
         </table>
       </Card>
