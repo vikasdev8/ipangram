@@ -17,6 +17,7 @@ import { Context } from '@app/_helper/alertProvider';
 import deparment from "@app/_helper/department";
 import { useCreateEmployeeMutation, useUpdateEmployeeMutation, useUpdateProfileMutation } from "@app/_RTK_Query/authentication_query";
 import {useSession} from 'next-auth/react'
+import { userAgent } from "next/server";
 
 interface Inputs {
     name?: string,
@@ -96,18 +97,18 @@ export function Form({ handleOpen, open, type, datas }: { handleOpen: () => void
                                 type !== "update" &&
                                 <>
                                     <div>
-                                        <Input label="Full Name" size="lg" type="text" {...register("name", { required: "Name Missing" })} crossOrigin="anonymous" />
+                                        <Input label="Full Name" size="lg" type="text" {...register("name", { required: type === "profile" ? false : "Name Missing", })} crossOrigin="anonymous" />
                                         <ErrorMessage errors={errors} name="name" render={({ message }) => <p className="text-[10px] text-red-400">{message}</p>} />
                                     </div>
                                     <div>
-                                        <Input label="Email" size="lg" type="email" {...register("email", { required: "Email Missing" })} crossOrigin="anonymous" />
+                                        <Input label="Email" size="lg" type="email" {...register("email", { required: type === "profile" ? false : "Email Missing" })} crossOrigin="anonymous" />
                                         <ErrorMessage errors={errors} name="email" render={({ message }) => <p className="text-[10px] text-red-400">{message}</p>} />
                                     </div>
                                 </>
                             }
                             {
-                                type === "update" &&
-                                <input hidden {...register('_id')} value={datas?._id} />
+                                type !== "create" &&
+                                <input hidden {...register('_id')} value={ type==="profile"?datas.id : datas?._id} />
                             }
                             {
                                 type !== "profile" &&
@@ -134,7 +135,8 @@ export function Form({ handleOpen, open, type, datas }: { handleOpen: () => void
                             {
                                 type === "profile" &&
                                 <div>
-                                    <Input label="current Password" size="lg" type="password" {...register("currentPassword", { required: "currentPassword Passowrd Missing", })} crossOrigin="anonymous" />
+                                    {/* validate: (value) => /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}/ig.test(value!) || "Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters" */}
+                                    <Input label="current Password" size="lg" type="password" {...register("currentPassword", { required: (getValues("password") || getValues("cpassword") ) && "currentPassword Passowrd Missing", })} crossOrigin="anonymous" />
                                     <ErrorMessage errors={errors} name="currentPassword" render={({ message }) => <p className="text-[10px] text-red-400">{message}</p>} />
                                 </div>
                             }
@@ -142,11 +144,11 @@ export function Form({ handleOpen, open, type, datas }: { handleOpen: () => void
                                 type !== "update" &&
                                 <>
                                     <div>
-                                        <Input label="Password" size="lg" type="password" {...register("password", { required: "Confirm Passowrd Missing", validate: (value) => /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}/ig.test(value!) || "Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters" })} crossOrigin="anonymous" />
+                                        <Input label={type === "profile" ? "New Password" : "Password"} size="lg" type="password" {...register("password", { required: (getValues("currentPassword") || getValues("cpassword") ) && "Confirm Passowrd Missing",  })} crossOrigin="anonymous" />
                                         <ErrorMessage errors={errors} name="password" render={({ message }) => <p className="text-[10px] text-red-400">{message}</p>} />
                                     </div>
                                     <div>
-                                        <Input label="Confirm Password" size="lg" type="text" {...register("cpassword", { required: "Confirm Passowrd Missing", validate: (value) => value === getValues('password') ? true : "Password and Confirm Password is not equal" })} crossOrigin="anonymous" />
+                                        <Input label="Confirm Password" size="lg" type="text" {...register("cpassword", { required: (getValues("password") || getValues("currentPassword") ) && "Confirm Passowrd Missing", validate: (value) => value === getValues('password') ? true : "Password and Confirm Password is not equal" })} crossOrigin="anonymous" />
                                         <ErrorMessage errors={errors} name="cpassword" render={({ message }) => <p className="text-[10px] text-red-400">{message}</p>} />
                                     </div>
                                 </>
