@@ -98,7 +98,7 @@ export default function LogInForm() {
               </div>
             </>
             :
-            <Profile />)
+            <Profile user={users}/>)
           :
           <h1>No Employees</h1>
       }

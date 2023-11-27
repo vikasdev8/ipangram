@@ -15,7 +15,8 @@ import { useForm, SubmitHandler } from "react-hook-form"
 import { ErrorMessage } from '@hookform/error-message';
 import { Context } from '@app/_helper/alertProvider';
 import deparment from "@app/_helper/department";
-import { useCreateEmployeeMutation, useUpdateEmployeeMutation } from "@app/_RTK_Query/authentication_query";
+import { useCreateEmployeeMutation, useUpdateEmployeeMutation, useUpdateProfileMutation } from "@app/_RTK_Query/authentication_query";
+import {useSession} from 'next-auth/react'
 
 interface Inputs {
     name?: string,
@@ -24,11 +25,13 @@ interface Inputs {
     department?: string,
     password?: string,
     cpassword?: string,
-    _id?:string
+    _id?: string
+    currentPassword?:string
 }
 
 export function Form({ handleOpen, open, type, datas }: { handleOpen: () => void, open: boolean, type: string, datas: any }) {
     const { alertFun } = useContext(Context)!;
+    const {update} = useSession();
     const {
         register,
         handleSubmit,
@@ -39,22 +42,35 @@ export function Form({ handleOpen, open, type, datas }: { handleOpen: () => void
     } = useForm<Inputs>()
     const [signUpR] = useCreateEmployeeMutation();
     const [updateR] = useUpdateEmployeeMutation();
+    const [updateProfile] = useUpdateProfileMutation();
     const resetForm = () => {
         handleOpen();
         reset()
     }
     const onSubmit: SubmitHandler<Inputs> = (data) => {
-        console.log(data,type)
-        if(type === "create"){
+        console.log(data, type)
+        if (type === "create") {
             signUpR(data).unwrap().then((res) => {
                 alertFun('Created Successfully', "success");
             }).catch((error) => {
                 alertFun(error?.data?.message, "error")
             })
         }
-        if(type === "update"){
+        if (type === "update") {
             updateR(data).unwrap().then((res) => {
+                let details:any = {};
+                data?.name ? details['name'] = data.name : ""
+                data?.email ? details['email'] = data.email : ""
+                update(details)
                 alertFun('Updated Successfully', "success");
+            }).catch((error) => {
+                alertFun(error?.data?.message, "error")
+            })
+
+        }
+        if (type === "profile") {
+            updateProfile(data).unwrap().then((res) => {
+                alertFun('Profile Updated Successfully', "success");
             }).catch((error) => {
                 alertFun(error?.data?.message, "error")
             })
@@ -77,7 +93,7 @@ export function Form({ handleOpen, open, type, datas }: { handleOpen: () => void
                                 {type === "create" ? "Create Employee" : "Update Employee"}
                             </Typography>
                             {
-                                type === "create" &&
+                                type !== "update" &&
                                 <>
                                     <div>
                                         <Input label="Full Name" size="lg" type="text" {...register("name", { required: "Name Missing" })} crossOrigin="anonymous" />
@@ -91,27 +107,39 @@ export function Form({ handleOpen, open, type, datas }: { handleOpen: () => void
                             }
                             {
                                 type === "update" &&
-                                <input hidden {...register('_id')} value={datas?._id}/>
+                                <input hidden {...register('_id')} value={datas?._id} />
                             }
-                            <div>
-                                <Select label="Designation" value={type === "update" ? datas?.role : ""} {...register('role', { required: "Role should be from dropdown",value:datas?.role || "" })} onChange={(e: any) => setValue("role", e)}>
-                                    <Option value="employee">Employee</Option>
-                                    <Option value="manager">Manager</Option>
-                                </Select>
-                                <ErrorMessage errors={errors} name="role" render={({ message }) => <p className="text-[10px] text-red-400">{message}</p>} />
-                            </div>
-                            <div>
-                                <Select label="Department" value={type === "update" ? datas?.department : ""} {...register('department', { required: "Deparement should be from dropdown", value:datas?.role || "" })} onChange={(e: any) => setValue("department", e)}>
-                                    {
-                                        deparment.map((dep, i) => (
-                                            <Option key={i} value={dep}>{dep}</Option>
-                                        ))
-                                    }
-                                </Select>
-                                <ErrorMessage errors={errors} name="role" render={({ message }) => <p className="text-[10px] text-red-400">{message}</p>} />
-                            </div>
                             {
-                                type === "create" &&
+                                type !== "profile" &&
+                                <>
+                                    <div>
+                                        <Select label="Designation" value={type === "update" ? datas?.role : ""} {...register('role', { required: "Role should be from dropdown", value: datas?.role || "" })} onChange={(e: any) => setValue("role", e)}>
+                                            <Option value="employee">Employee</Option>
+                                            <Option value="manager">Manager</Option>
+                                        </Select>
+                                        <ErrorMessage errors={errors} name="role" render={({ message }) => <p className="text-[10px] text-red-400">{message}</p>} />
+                                    </div>
+                                    <div>
+                                        <Select label="Department" value={type === "update" ? datas?.department : ""} {...register('department', { required: "Deparement should be from dropdown", value: datas?.role || "" })} onChange={(e: any) => setValue("department", e)}>
+                                            {
+                                                deparment.map((dep, i) => (
+                                                    <Option key={i} value={dep}>{dep}</Option>
+                                                ))
+                                            }
+                                        </Select>
+                                        <ErrorMessage errors={errors} name="role" render={({ message }) => <p className="text-[10px] text-red-400">{message}</p>} />
+                                    </div>
+                                </>
+                            }
+                            {
+                                type === "profile" &&
+                                <div>
+                                    <Input label="current Password" size="lg" type="password" {...register("currentPassword", { required: "currentPassword Passowrd Missing", })} crossOrigin="anonymous" />
+                                    <ErrorMessage errors={errors} name="currentPassword" render={({ message }) => <p className="text-[10px] text-red-400">{message}</p>} />
+                                </div>
+                            }
+                            {
+                                type !== "update" &&
                                 <>
                                     <div>
                                         <Input label="Password" size="lg" type="password" {...register("password", { required: "Confirm Passowrd Missing", validate: (value) => /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}/ig.test(value!) || "Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters" })} crossOrigin="anonymous" />
@@ -126,7 +154,7 @@ export function Form({ handleOpen, open, type, datas }: { handleOpen: () => void
                         </CardBody>
                         <CardFooter className="pt-0">
                             <Button variant="gradient" type="submit" fullWidth>
-                                { type === "create" ? "Create Employee" : "Update Employee" }
+                                {type === "create" ? "Create Employee" : "Update Employee"}
                             </Button>
                         </CardFooter>
                     </form>

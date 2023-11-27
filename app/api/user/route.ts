@@ -14,6 +14,7 @@ export async function PUT(req: NextRequest) {
             email:z.string().email({message:"Invalid email"}),
             password:z.string(),
             newPassword:z.string(),
+            id:z.string()
         })
         .required()
         .safeParse(body)
@@ -25,7 +26,7 @@ export async function PUT(req: NextRequest) {
             })
           }
 
-        await EmployeeModel.findOneAndUpdate({email:body.email}, body)
+        await EmployeeModel.findByIdUpdate({email:body.email}, body)
 
         return HandleResponse({
             type: "SUCCESS",

@@ -42,8 +42,18 @@ export const authApis = createApi({
       },
       invalidatesTags:['employeeGet']
     }),
+
+    updateProfile: builder.mutation({
+      query:(body)=>{
+        return{
+          url:`user`,
+          body,
+          method:"put"
+        }
+      }
+    }),
     
   }),
 })
 
-export const {useCreateEmployeeMutation,useGetAllEmployeesQuery,useUpdateEmployeeMutation,useDeleteEmployeeMutation} = authApis;
+export const {useCreateEmployeeMutation,useGetAllEmployeesQuery,useUpdateEmployeeMutation,useDeleteEmployeeMutation,useUpdateProfileMutation} = authApis;
